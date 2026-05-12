@@ -1,28 +1,42 @@
 # =============================
 # Set BrowserStack Credentials
 # =============================
-# Replace the placeholders below with your real BrowserStack credentials,
-# or remove these two lines entirely and set BROWSERSTACK_USERNAME and
-# BROWSERSTACK_ACCESS_KEY as environment variables. NOTE: when these
-# fields are present in the yml, the SDK uses their literal values --
-# env vars override them only if the lines are absent.
+# Add your BrowserStack userName and accessKey here or set BROWSERSTACK_USERNAME and
+# BROWSERSTACK_ACCESS_KEY as env variables.
+# NOTE (.NET SDK quirk): when these fields are present in the yml, the SDK uses
+# their literal values -- env vars override them only if the lines below are absent.
 userName: YOUR_USERNAME
 accessKey: YOUR_ACCESS_KEY
 
 # ======================
 # BrowserStack Reporting
 # ======================
+# The following capabilities are used to set up reporting on BrowserStack:
+# Set 'projectName' to the name of your project. Example, Marketing Website
 projectName: BrowserStack Samples
+# Set `buildName` as the name of the job / testsuite being run
 buildName: xunit-reqnroll-playwright-browserstack
-buildIdentifier: '#${BUILD_NUMBER}'
+# `buildIdentifier` is a unique id to differentiate every execution that gets appended to
+# buildName. Choose your buildIdentifier format from the available expressions:
+# ${BUILD_NUMBER} (Default): Generates an incremental counter with every execution
+# ${DATE_TIME}: Generates a Timestamp with every execution. Eg. 05-Nov-19:30
+# Read more about buildIdentifiers here -> https://www.browserstack.com/docs/automate/selenium/organize-tests
+buildIdentifier: '#${BUILD_NUMBER}' # Supports strings along with either/both ${expression}
+# Set `framework` of your test suite. Example, `nunit`, `xunit`, `mstest`
+# This property is needed to send test context to BrowserStack (test name, status).
+# Reqnroll (BDD layer) is auto-detected by the SDK on top of the runner declared here.
+framework: xunit
+
+source: xunit-reqnroll-playwright:sample-master:v1.0
 
 # =======================================
 # Platforms (Browsers / Devices to test)
 # =======================================
-# Each entry is one cross-browser cell. The SDK runs `parallelsPerPlatform`
-# parallel sessions per entry. Customer code in Hooks/PlaywrightHooks.cs calls
-# `pw.Chromium.LaunchAsync()` -- the SDK transparently routes the launch to
-# the per-platform browser configured here at runtime.
+# Platforms object contains all the browser / device combinations you want to test on.
+# Entire list available here -> (https://www.browserstack.com/list-of-browsers-and-platforms/automate)
+# Customer code in Hooks/PlaywrightHooks.cs calls `pw.Chromium.LaunchAsync()`
+# unconditionally -- the SDK transparently routes the launch to the per-platform
+# browser configured here at runtime.
 platforms:
   - os: Windows
     osVersion: 11
@@ -33,21 +47,35 @@ platforms:
     browserName: playwright-webkit
     browserVersion: latest
 
+# =======================
+# Parallels per Platform
+# =======================
+# The number of parallel threads to be used for each platform set.
+# BrowserStack's SDK runner will select the best strategy based on the configured value
+#
+# Example 1 - If you have configured 3 platforms and set `parallelsPerPlatform` as 2, a total of 6 (2 * 3) parallel threads will be used on BrowserStack
+#
+# Example 2 - If you have configured 1 platform and set `parallelsPerPlatform` as 5, a total of 5 (1 * 5) parallel threads will be used on BrowserStack
 parallelsPerPlatform: 1
 
-# ===================================
-# BrowserStack Local (private hosts)
-# ===================================
-# Set to true to test localhost / staging hosts. The SDK starts and stops
-# the BrowserStack Local tunnel for you -- no manual binary management.
-browserstackLocal: false
+# ==========================================
+# BrowserStack Local
+# (For localhost, staging/private websites)
+# ==========================================
+# Set browserstackLocal to true if your website under test is not accessible publicly over the internet
+# Learn more about how BrowserStack Local works here -> https://www.browserstack.com/docs/automate/selenium/local-testing-introduction
+browserstackLocal: false # <boolean> (Default false)
 
-# ===========
-# Diagnostics
-# ===========
-debug: false
-networkLogs: false
-consoleLogs: errors
+# Options to be passed to BrowserStack local in-case of advanced configurations
+# browserStackLocalOptions:
+  # localIdentifier: # <string> (Default: null) Needed if you need to run multiple instances of local.
+  # forceLocal: true  # <boolean> (Default: false) Set to true if you need to resolve all your traffic via BrowserStack Local tunnel.
+  # Entire list of arguments available here -> https://www.browserstack.com/docs/automate/selenium/manage-incoming-connections
 
-# Identifier so BrowserStack can tag the sample source -- please leave as-is.
-source: xunit-reqnroll-playwright:sample-master:v1.0
+# ===================
+# Debugging features
+# ===================
+debug: false # <boolean> # Set to true if you need screenshots for every selenium command ran
+networkLogs: false # <boolean> Set to true to enable HAR logs capturing
+consoleLogs: errors # <string> Remote browser's console debug levels to be printed (Default: errors)
+# Available options are `disable`, `errors`, `warnings`, `info`, `verbose` (Default: errors)
